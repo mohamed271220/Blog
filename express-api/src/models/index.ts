@@ -120,6 +120,8 @@ PostView.belongsTo(Post, { foreignKey: "postId" });
 Comment.hasMany(Comment, { as: "replies", foreignKey: "parentId" });
 Comment.belongsTo(Comment, { as: "parent", foreignKey: "parentId" });
 
+
+
 // Sync models with database
 // This will create or alter tables as necessary based on the models
 sequelize.sync({ alter: true }).then(() => {

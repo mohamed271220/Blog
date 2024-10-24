@@ -189,72 +189,48 @@ export class PostService {
       ]),
     ];
 
-    // Get the tags and categories from these posts
-    const tags = await this.postTagRepository.findAll({
-      where: { postId: { [Op.in]: postIds } },
-      attributes: ["tagId"],
-      group: ["tagId"],
-    });
-
-    const categories = await this.postCategoryRepository.findAll({
-      where: { postId: { [Op.in]: postIds } },
-      attributes: ["categoryId"],
-      group: ["categoryId"],
-    });
-
-    // Get the unique tag and category IDs
-    const tagIds = tags.map((tag) => tag.tagId);
-    const categoryIds = categories.map((category) => category.categoryId);
-
-    // Perform a count query without the include option
+    // Perform a count query
     const count = await this.postRepository.count({
-      where: {
-        [Op.or]: [
-          { id: { [Op.in]: postIds } },
-          tagIds.length > 0 ? { "$PostTags.tagId$": { [Op.in]: tagIds } } : {},
-          categoryIds.length > 0
-            ? { "$PostCategories.categoryId$": { [Op.in]: categoryIds } }
-            : {},
-        ],
-      },
+      where: { id: { [Op.in]: postIds } },
     });
 
-    // Fetch posts that match the user's interacted tags and categories
+    // Fetch posts that match the user's interacted posts
     const posts = await this.postRepository.findAll({
       limit,
       offset,
-      where: {
-        [Op.or]: [
-          { id: { [Op.in]: postIds } },
-          tagIds.length > 0 ? { "$PostTags.tagId$": { [Op.in]: tagIds } } : {},
-          categoryIds.length > 0
-            ? { "$PostCategories.categoryId$": { [Op.in]: categoryIds } }
-            : {},
-        ],
-      },
+      where: { id: { [Op.in]: postIds } },
       include: [
         {
           model: this.userRepository,
           attributes: ["id", "email", "username"],
         },
         {
-          model: this.tagRepository,
-          through: { attributes: [] }, // Avoid including join table attributes
-        },
-        {
-          model: this.categoryRepository,
-          through: { attributes: [] }, // Avoid including join table attributes
-        },
-        {
           model: this.mediaLinkRepository,
         },
       ],
-      // distinct: true, // Avoid duplicate posts
+    });
+
+    const votesOfPosts = await this.voteRepository.findAll({
+      where: { postId: { [Op.in]: postIds }, type: "upvote" },
+      attributes: ["postId", [Sequelize.fn("COUNT", "postId"), "upvotes"]],
+      group: ["postId"],
+    });
+
+    // Create a map of postId to upvotes
+    const voteMap = votesOfPosts.reduce((acc, vote) => {
+      acc[vote.postId] = vote.get("upvotes") as number;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Add the upvotes to the posts
+    const postsWithVotes = posts.map((post) => {
+      const upvotes = voteMap[post.id] ?? 0;
+      return { ...post.toJSON(), upvotes } as Post & { upvotes: number };
     });
 
     // Handle pagination
     const pagination = getPagination(count, limit, offset);
-    return { posts, pagination };
+    return { posts: postsWithVotes, pagination };
   }
 
   async getPostById(postId: string, userId: string | null) {

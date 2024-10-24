@@ -32,6 +32,17 @@ export const fetchPosts = async ({ signal, page = 1, searchQuery = '', limit = 1
     });
     return response.data;
 };
+export const fetchRecommendedPosts = async ({ signal, page = 1, limit = 10 }) => {
+    const offset = (page - 1) * limit;
+    const response = await api.get('/posts/feed', {
+        signal,
+        params: {
+            offset,
+            limit,
+        },
+    });
+    return response.data;
+};
 
 export const fetchPost = async ({ signal, id }) => {
     const response = await api.get(`/posts/${id}`, { signal });

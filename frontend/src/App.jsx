@@ -8,6 +8,8 @@ import FeedPage from './pages/FeedPage';
 import Post from './pages/postPage';
 import CategoryPage from './pages/CategoriesPage';
 import TagsPage from './pages/TagsPage';
+import RecommendedPage from './pages/RecommendedPage';
+import CreatePost from './pages/CreatePostPage';
 
 
 const router = createBrowserRouter([
@@ -19,6 +21,18 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <FeedPage />
+      },
+      {
+        path: "/recommended",
+        element: <ProtectedRoute>
+          <RecommendedPage />
+        </ProtectedRoute>
+      },
+      {
+        path: "/post/create",
+        element: <ProtectedRoute>
+          <CreatePost/>
+        </ProtectedRoute>
       },
       {
         path: '/post/:id',

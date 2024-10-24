@@ -9,7 +9,7 @@ const Sidebar = ({ isOpen }) => {
 
     const navItems = [
         { to: '/', label: 'Home', icon: FaHome, authRequired: false },
-        { to: '#about', label: 'Recommended', icon: FaInfoCircle, authRequired: true },
+        { to: '/recommended', label: 'Recommended', icon: FaInfoCircle, authRequired: true },
         { to: '#contact', label: 'Contact', icon: FaEnvelope, authRequired: false },
         { to: '/categories', label: 'Categories', icon: FaCalendar, authRequired: false },
         { to: '/tags', label: 'Tags', icon: FaCalendar, authRequired: false },
@@ -45,6 +45,22 @@ const Sidebar = ({ isOpen }) => {
                             </NavLink>
                         );
                     })}
+                    {isAuthenticated && user?.roles.includes('admin') && (
+                        <NavLink
+                            key={'admin'}
+                            to={'/admin'}
+                            className="flex items-center mb-4 hover:bg-gray-300 dark:hover:bg-gray-700 bg-opacity-45 p-2 rounded"
+                            activeClassName="bg-blue-500 text-white"
+                        >
+                            <li className="flex items-center w-full">
+                                <FaCalendar className="mr-3" />
+                                <span className="text-lg">
+                                    Admin
+                                </span>
+                            </li>
+                        </NavLink>
+                    )
+                    }
                 </ul>
             </nav>
         </aside>
