@@ -87,3 +87,15 @@ export const fetchPostsByTag = async ({ signal, selectedTag, page = 1, limit = 1
     });
     return response.data;
 };
+
+export const fetchPostsByAuthorId = async ({ signal, userId, page = 1, limit = 10 }) => {
+    const offset = (page - 1) * limit;
+    const response = await api.get(`/posts/author/${userId}`, {
+        signal,
+        params: {
+            offset,
+            limit,
+        },
+    });
+    return response.data;
+};

@@ -1,4 +1,4 @@
-import { FaHome, FaInfoCircle, FaEnvelope, FaUserCircle, FaCalendar } from 'react-icons/fa'; // Importing icons
+import { FaHome, FaInfoCircle, FaUserCircle, FaCalendar } from 'react-icons/fa'; // Importing icons
 import useAuth from '../../hooks/useAuth';
 import useUser from '../../hooks/useUser';
 import { NavLink } from 'react-router-dom';
@@ -6,11 +6,12 @@ import { NavLink } from 'react-router-dom';
 const Sidebar = ({ isOpen }) => {
     const isAuthenticated = useAuth();
     const user = useUser();
+    
 
     const navItems = [
         { to: '/', label: 'Home', icon: FaHome, authRequired: false },
         { to: '/recommended', label: 'Recommended', icon: FaInfoCircle, authRequired: true },
-        { to: '#contact', label: 'Contact', icon: FaEnvelope, authRequired: false },
+        { to: '/profile', label: 'Profile', icon: FaUserCircle, authRequired: true },
         { to: '/categories', label: 'Categories', icon: FaCalendar, authRequired: false },
         { to: '/tags', label: 'Tags', icon: FaCalendar, authRequired: false },
     ];
@@ -19,14 +20,7 @@ const Sidebar = ({ isOpen }) => {
         <aside
             className={`transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} w-64 p-4 bg-gradient-to-b fixed h-full`}
         >
-            <div className="flex flex-col items-center mb-8">
-                {isAuthenticated && (
-                    <>
-                        <FaUserCircle className="text-4xl mb-2" />
-                        <p className="text-lg font-semibold">{user?.username}</p>
-                    </>
-                )}
-            </div>
+
             <nav>
                 <ul>
                     {navItems.map((item, index) => {

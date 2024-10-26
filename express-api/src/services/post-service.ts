@@ -255,13 +255,10 @@ export class PostService {
   }
 
   async getPostsByAuthor(authorId: string, limit: number, offset: number) {
-    const author = await this.userRepository.findByPk(authorId);
-    if (!author) {
-      throw new CustomError("Author not found", 404);
-    }
-    const { count, rows: posts } = await this.postRepository.findAndCountAll({
-      limit,
+    const count = await this.postRepository.count({ where: { authorId } });
+    const posts = await this.postRepository.findAll({
       offset,
+      limit,
       where: { authorId },
       include: [
         {
@@ -273,8 +270,29 @@ export class PostService {
         { model: this.mediaLinkRepository },
       ],
     });
+
+    // get the number of upvotes for each post
+    const postIds = posts.map((post) => post.id);
+    const votes = await this.voteRepository.findAll({
+      where: { postId: { [Op.in]: postIds }, type: "upvote" },
+      attributes: ["postId", [Sequelize.fn("COUNT", "postId"), "upvotes"]],
+      group: ["postId"],
+    });
+
+    // Create a map of postId to upvotes
+    const voteMap = votes.reduce((acc, vote) => {
+      acc[vote.postId] = vote.get("upvotes") as number;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Add the upvotes to the posts
+    const postsWithVotes = posts.map((post) => {
+      const upvotes = voteMap[post.id] ?? 0;
+      return { ...post.toJSON(), upvotes } as Post & { upvotes: number };
+    });
+
     const pagination = getPagination(count, limit, offset);
-    return { posts, pagination };
+    return { posts: postsWithVotes, pagination };
   }
 
   async getPostsByCategory(categoryId: string, limit: number, offset: number) {

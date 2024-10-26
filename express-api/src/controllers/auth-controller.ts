@@ -143,7 +143,7 @@ export const login = async (
 
     res.status(200).json({
       message: "Login successful",
-      user: user.id,
+      userId: user.id,
       username: user.username,
       roles: roles.map((role) => role.name),
     });
